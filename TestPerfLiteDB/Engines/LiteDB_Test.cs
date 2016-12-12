@@ -44,7 +44,7 @@ namespace TestPerfLiteDB
 
         public void Bulk()
         {
-            _db.Update("col_bulk", Helper.GetDocs(_count));
+            _db.Insert("col_bulk", Helper.GetDocs(_count));
         }
 
         public void Update()
@@ -64,7 +64,7 @@ namespace TestPerfLiteDB
         {
             for(var i = 0; i < _count; i++)
             {
-                _db.Find("col", LiteDB.Query.EQ("_id", i));
+                _db.Find("col", LiteDB.Query.EQ("_id", i)).Single();
             }
         }
 
