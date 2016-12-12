@@ -15,6 +15,8 @@ Results:
 |Drop           |      17 ms |     56 ms |     14 ms |      11 ms |     25 ms |      3 ms |
 |FileLength     |   7.580 kb |  7.576 kb |  7.572 kb |   3.824 kb |  3.856 kb |  3.824 kb |
 
+> Low is better
+
 LiteDB
 - #1 Default
 - #2 Encrypted
