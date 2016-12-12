@@ -6,14 +6,14 @@ Results:
 
 | Action        | LiteDB #1  | LiteDB #2 | LiteDB #3 | SQLite #1  | SQLite #2 | SQLite #3 |
 |---------------|-----------:|----------:|----------:|-----------:|----------:|----------:|
-|Insert         |   4.999 ms |  5.690 ms |  4.839 ms |  46.379 ms | 49.296 ms |   4107 ms |
+|Insert         |   4.999 ms |  5.690 ms |  4.839 ms |  46.379 ms | 49.296 ms |  4.107 ms |
 |Bulk           |     236 ms |    280 ms |    219 ms |     122 ms |    122 ms |    106 ms |
-|Update         |   3.674 ms |  3.784 ms |  3.242 ms |  47.470 ms | 48.490 ms |   4101 ms |
+|Update         |   3.674 ms |  3.784 ms |  3.242 ms |  47.470 ms | 48.490 ms |  4.101 ms |
 |CreateIndex    |     176 ms |    174 ms |    176 ms |      13 ms |     36 ms |      8 ms |
 |Query          |     204 ms |    208 ms |     93 ms |     457 ms |    463 ms |    468 ms |
 |Delete         |     157 ms |    207 ms |    140 ms |      11 ms |     13 ms |      3 ms |
 |Drop           |      17 ms |     56 ms |     14 ms |      11 ms |     25 ms |      3 ms |
-|FileLength     |   7.580 kb |  7.576 kb |  7.572 kb |   3.824 kb |  3.856 kb |   3824 kb |
+|FileLength     |   7.580 kb |  7.576 kb |  7.572 kb |   3.824 kb |  3.856 kb |  3.824 kb |
 
 LiteDB
 - #1 Default
