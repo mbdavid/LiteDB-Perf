@@ -19,12 +19,13 @@ namespace TestPerfLiteDB
         public int Count { get { return _count; } }
         public int FileLength { get { return (int)new FileInfo(_filename).Length; } }
 
-        public SQLite_Test(int count, string password)
+        public SQLite_Test(int count, string password, bool journal)
         {
             _count = count;
             _filename = "sqlite-" + Guid.NewGuid().ToString("n") + ".db";
             var cs = "Data Source=" + _filename;
-            if (password != null) cs += "; password=" + password;
+            if (password != null) cs += "; Password=" + password;
+            if (journal == false) cs += "; Journal Mode=Off";
             _db = new SQLiteConnection(cs);
         }
 

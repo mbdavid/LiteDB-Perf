@@ -17,8 +17,9 @@ namespace TestPerfLiteDB
             RunTest("LiteDB: encrypted", new LiteDB_Test(5000, "mypass", new FileOptions { Journal = true, FileMode = FileOpenMode.Shared }));
             RunTest("LiteDB: exclusive no journal", new LiteDB_Test(5000, null, new FileOptions { Journal = false, FileMode = FileOpenMode.Exclusive }));
 
-            RunTest("SQLite: default", new SQLite_Test(5000, null));
-            RunTest("SQLite: encrypted", new SQLite_Test(5000, "mypass"));
+            RunTest("SQLite: default", new SQLite_Test(5000, null, true));
+            RunTest("SQLite: encrypted", new SQLite_Test(5000, "mypass", true));
+            RunTest("SQLite: no journal", new SQLite_Test(5000, null, false));
 
             Console.ReadKey();
         }
