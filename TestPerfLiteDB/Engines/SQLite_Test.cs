@@ -10,90 +10,139 @@ using System.Threading.Tasks;
 
 namespace TestPerfLiteDB
 {
-    public class SQLite_Test
+    public class SQLite_Test : ITest
     {
-        public static Stopwatch Insert(bool journal)
+        private string _filename;
+        private SQLiteConnection _db;
+        private int _count;
+
+        public int Count { get { return _count; } }
+        public int FileLength { get { return (int)new FileInfo(_filename).Length; } }
+
+        public SQLite_Test(int count, string password)
         {
-            var sw = new Stopwatch();
+            _count = count;
+            _filename = "sqlite-" + Guid.NewGuid().ToString("n") + ".db";
+            var cs = "Data Source=" + _filename;
+            if (password != null) cs += "; password=" + password;
+            _db = new SQLiteConnection(cs);
+        }
 
-            using (var db = PrepareDB(journal))
+        public void Prepare()
+        {
+            _db.Open();
+
+            var table = new SQLiteCommand("CREATE TABLE col (id INTEGER NOT NULL PRIMARY KEY, name TEXT, lorem TEXT)", _db);
+            table.ExecuteNonQuery();
+
+            var table2 = new SQLiteCommand("CREATE TABLE col_bulk (id INTEGER NOT NULL PRIMARY KEY, name TEXT, lorem TEXT)", _db);
+            table2.ExecuteNonQuery();
+        }
+
+        public void Insert()
+        {
+            var cmd = new SQLiteCommand("INSERT INTO col (id, name, lorem) VALUES (@id, @name, @lorem)", _db);
+
+            cmd.Parameters.Add(new SQLiteParameter("id", DbType.Int32));
+            cmd.Parameters.Add(new SQLiteParameter("name", DbType.String));
+            cmd.Parameters.Add(new SQLiteParameter("lorem", DbType.String));
+
+            foreach (var doc in Helper.GetDocs(_count))
             {
-                var cmd = GetInsert(db);
+                cmd.Parameters["id"].Value = doc["_id"].AsInt32;
+                cmd.Parameters["name"].Value = doc["name"].AsString;
+                cmd.Parameters["lorem"].Value = doc["lorem"].AsString;
 
-                sw.Start();
+                cmd.ExecuteNonQuery();
+            }
+        }
 
-                foreach (var doc in Helper.GetDocs())
+        public void Bulk()
+        {
+            using (var trans = _db.BeginTransaction())
+            {
+                var cmd = new SQLiteCommand("INSERT INTO col_bulk (id, name, lorem) VALUES (@id, @name, @lorem)", _db);
+
+                cmd.Parameters.Add(new SQLiteParameter("id", DbType.Int32));
+                cmd.Parameters.Add(new SQLiteParameter("name", DbType.String));
+                cmd.Parameters.Add(new SQLiteParameter("lorem", DbType.String));
+
+                foreach (var doc in Helper.GetDocs(_count))
                 {
                     cmd.Parameters["id"].Value = doc["_id"].AsInt32;
                     cmd.Parameters["name"].Value = doc["name"].AsString;
                     cmd.Parameters["lorem"].Value = doc["lorem"].AsString;
-                    
+
                     cmd.ExecuteNonQuery();
                 }
 
-                db.Dispose();
-
-                sw.Stop();
+                trans.Commit();
             }
-
-            return sw;
         }
 
-        public static Stopwatch Bulk(bool journal)
+        public void Update()
         {
-            var sw = new Stopwatch();
+            var cmd = new SQLiteCommand("UPDATE col SET name = @name, lorem = @lorem WHERE id = @id", _db);
 
-            using (var cn = PrepareDB(journal))
+            cmd.Parameters.Add(new SQLiteParameter("id", DbType.Int32));
+            cmd.Parameters.Add(new SQLiteParameter("name", DbType.String));
+            cmd.Parameters.Add(new SQLiteParameter("lorem", DbType.String));
+
+            foreach (var doc in Helper.GetDocs(_count))
             {
-                using (var trans = cn.BeginTransaction())
-                {
-                    var cmd = GetInsert(cn);
+                cmd.Parameters["id"].Value = doc["_id"].AsInt32;
+                cmd.Parameters["name"].Value = doc["name"].AsString;
+                cmd.Parameters["lorem"].Value = doc["lorem"].AsString;
 
-                    sw.Start();
-
-                    foreach (var doc in Helper.GetDocs())
-                    {
-                        cmd.Parameters["id"].Value = doc["_id"].AsInt32;
-                        cmd.Parameters["name"].Value = doc["name"].AsString;
-                        cmd.Parameters["lorem"].Value = doc["lorem"].AsString;
-
-                        cmd.ExecuteNonQuery();
-                    }
-
-                    trans.Commit();
-
-                    sw.Stop();
-                }
+                cmd.ExecuteNonQuery();
             }
-
-            return sw;
         }
 
-
-        private static SQLiteConnection PrepareDB(bool journal)
+        public void CreateIndex()
         {
-            var file = "sqlite_" + Guid.NewGuid() + ".db";
+            var cmd = new SQLiteCommand("CREATE INDEX idx1 ON col (name)", _db);
 
-            if (journal == false) file += "; Journal Mode=Off;";
-
-            var db = new SQLiteConnection("Data Source=" + file);
-            db.Open();
-
-            var table = new SQLiteCommand("CREATE TABLE demo (id INTEGER NOT NULL PRIMARY KEY, name TEXT, lorem TEXT)", db);
-            table.ExecuteNonQuery();
-
-            return db;
+            cmd.ExecuteNonQuery();
         }
 
-        private static SQLiteCommand GetInsert(SQLiteConnection db)
+        public void Query()
         {
-            var cm = new SQLiteCommand("INSERT INTO demo (id, name, lorem) VALUES (@id, @name, @lorem)", db);
+            var cmd = new SQLiteCommand("SELECT * FROM col WHERE id = @id", _db);
 
-            cm.Parameters.Add(new SQLiteParameter("id", DbType.Int32));
-            cm.Parameters.Add(new SQLiteParameter("name", DbType.String));
-            cm.Parameters.Add(new SQLiteParameter("lorem", DbType.String));
+            cmd.Parameters.Add(new SQLiteParameter("id", DbType.Int32));
 
-            return cm;
+            for (var i = 0; i < _count; i++)
+            {
+                cmd.Parameters["id"].Value = i;
+
+                var r = cmd.ExecuteReader();
+
+                r.Read();
+
+                var name = r.GetString(1);
+                var lorem = r.GetString(2);
+
+                r.Close();
+            }
+        }
+
+        public void Delete()
+        {
+            var cmd = new SQLiteCommand("DELETE FROM col", _db);
+
+            cmd.ExecuteNonQuery();
+        }
+
+        public void Drop()
+        {
+            var cmd = new SQLiteCommand("DROP TABLE col_bulk", _db);
+
+            cmd.ExecuteNonQuery();
+        }
+
+        public void Dispose()
+        {
+            _db.Dispose();
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,28 +11,40 @@ namespace TestPerfLiteDB
 {
     class Program
     {
-        public const int N = 1000;
-
         static void Main(string[] args)
         {
-            Console.WriteLine("Total records: " + N);
-            Console.WriteLine();
+            RunTest("LiteDB: default", new LiteDB_Test(5000, null, new FileOptions { Journal = true, FileMode = FileOpenMode.Shared }));
+            RunTest("LiteDB: encrypted", new LiteDB_Test(5000, "mypass", new FileOptions { Journal = true, FileMode = FileOpenMode.Shared }));
+            RunTest("LiteDB: exclusive no journal", new LiteDB_Test(5000, null, new FileOptions { Journal = false, FileMode = FileOpenMode.Exclusive }));
 
-            Console.WriteLine("Journal Enabled");
-            Helper.Write("SQLite - Insert: ", SQLite_Test.Insert(true));
-            Helper.Write("LiteDB - Insert: ", LiteDB_Test.Insert(true));
-            Helper.Write("SQLite - Bulk  : ", SQLite_Test.Bulk(true));
-            Helper.Write("LiteDB - Bulk  : ", LiteDB_Test.Bulk(true));
-
-            Console.WriteLine();
-            Console.WriteLine("Journal Disabled");
-
-            Helper.Write("SQLite - Insert: ", SQLite_Test.Insert(false));
-            Helper.Write("LiteDB - Insert: ", LiteDB_Test.Insert(false));
-            Helper.Write("SQLite - Bulk  : ", SQLite_Test.Bulk(false));
-            Helper.Write("LiteDB - Bulk  : ", LiteDB_Test.Bulk(false));
+            RunTest("SQLite: default", new SQLite_Test(5000, null));
+            RunTest("SQLite: encrypted", new SQLite_Test(5000, "mypass"));
 
             Console.ReadKey();
+        }
+
+        static void RunTest(string name, ITest test)
+        {
+            var title = name + " - " + test.Count + " records";
+            Console.WriteLine(title);
+            Console.WriteLine("=".PadLeft(title.Length, '='));
+
+            test.Prepare();
+
+            test.Run("Insert", test.Insert);
+            test.Run("Bulk", test.Bulk);
+            test.Run("Update", test.Update);
+            test.Run("CreateIndex", test.CreateIndex);
+            test.Run("Query", test.Query);
+            test.Run("Delete", test.Delete);
+            test.Run("Drop", test.Drop);
+
+            Console.WriteLine("FileLength     : " + Math.Round((double)test.FileLength / (double)1024, 2).ToString().PadLeft(5, ' ') + " kb");
+
+            test.Dispose();
+
+            Console.WriteLine();
+
         }
     }
 }

@@ -11,48 +11,77 @@ using LiteDB;
 
 namespace TestPerfLiteDB
 {
-    public class LiteDB_Test
+    public class LiteDB_Test : ITest
     {
-        public static Stopwatch Insert(bool journal)
+        private string _filename;
+        private LiteEngine _db;
+        private int _count;
+
+        public int Count { get { return _count; } }
+        public int FileLength { get { return (int)new FileInfo(_filename).Length; } }
+
+        public LiteDB_Test(int count, string password, LiteDB.FileOptions options)
         {
-            var sw = new Stopwatch();
+            _count = count;
+            _filename = "dblite-" + Guid.NewGuid().ToString("n") + ".db";
 
-            using (var db = PrepareDB(journal))
-            {
-                sw.Start();
+            var disk = new FileDiskService(_filename, options);
 
-                foreach (var doc in Helper.GetDocs())
-                {
-                    db.Insert("demo", doc);
-                }
-
-                sw.Stop();
-            }
-
-            return sw;
+            _db = new LiteEngine(disk, password);
         }
 
-        public static Stopwatch Bulk(bool journal)
+        public void Prepare()
         {
-            var sw = new Stopwatch();
-
-            using (var db = PrepareDB(journal))
-            {
-                sw.Start();
-
-                db.Insert("demo", Helper.GetDocs());
-
-                sw.Stop();
-            }
-
-            return sw;
         }
 
-        private static LiteEngine PrepareDB(bool journal)
+        public void Insert()
         {
-            var file = "litedb_" + Guid.NewGuid() + ".db";
+            foreach (var doc in Helper.GetDocs(_count))
+            {
+                _db.Insert("col", doc);
+            }
+        }
 
-            return new LiteEngine(file, journal);
+        public void Bulk()
+        {
+            _db.Update("col_bulk", Helper.GetDocs(_count));
+        }
+
+        public void Update()
+        {
+            foreach(var doc in Helper.GetDocs(_count))
+            {
+                _db.Update("col", doc);
+            }
+        }
+
+        public void CreateIndex()
+        {
+            _db.EnsureIndex("col", "name", false);
+        }
+
+        public void Query()
+        {
+            for(var i = 0; i < _count; i++)
+            {
+                _db.Find("col", LiteDB.Query.EQ("_id", i));
+            }
+        }
+
+        public void Delete()
+        {
+            _db.Delete("col", LiteDB.Query.All());
+        }
+
+        public void Drop()
+        {
+            _db.DropCollection("col_bulk");
+        }
+
+        public void Dispose()
+        {
+            _db.Dispose();
+            File.Delete(_filename);
         }
     }
 }

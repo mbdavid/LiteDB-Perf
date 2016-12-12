@@ -9,18 +9,27 @@ using LiteDB;
 
 namespace TestPerfLiteDB
 {
-    class Helper
+    static class Helper
     {
-        public static void Write(string msg, Stopwatch sw)
+        public static void Run(this ITest test, string name, Action action)
         {
-            Console.WriteLine(msg + 
-                sw.ElapsedMilliseconds + " ms - " + 
-                Math.Round(Program.N / sw.Elapsed.TotalSeconds) + " records/second");
+            var sw = new Stopwatch();
+
+            sw.Start();
+            action();
+            sw.Stop();
+
+            var time = sw.ElapsedMilliseconds.ToString().PadLeft(5, ' ');
+            var seg = Math.Round(test.Count / sw.Elapsed.TotalSeconds).ToString().PadLeft(8, ' ');
+
+            Console.WriteLine(name.PadRight(15, ' ') + ": " + 
+                time + " ms - " + 
+                seg + " records/second");
         }
 
-        public static IEnumerable<BsonDocument> GetDocs()
+        public static IEnumerable<BsonDocument> GetDocs(int count)
         {
-            for(var i = 0; i < Program.N; i++)
+            for(var i = 0; i < count; i++)
             {
                 yield return new BsonDocument
                 {
