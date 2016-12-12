@@ -5,7 +5,7 @@ A simple actions to compare SQLite and LiteDB v3
 Results:
 
 | Action        | LiteDB #1  | LiteDB #2 | LiteDB #3 | SQLite #1  | SQLite #2 | SQLite #3 |
-|---------------|------------|-----------|-----------|------------|-----------|-----------|
+|---------------|-----------:|----------:|----------:|-----------:|----------:|----------:|
 |Insert         |   4.999 ms |  5.690 ms |  4.839 ms |  46.379 ms | 49.296 ms |   4107 ms |
 |Bulk           |     236 ms |    280 ms |    219 ms |     122 ms |    122 ms |    106 ms |
 |Update         |   3.674 ms |  3.784 ms |  3.242 ms |  47.470 ms | 48.490 ms |   4101 ms |
