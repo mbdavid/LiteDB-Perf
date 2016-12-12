@@ -1,8 +1,8 @@
 # LiteDB-Perf
 
-A simple INSERT/BULK compare between SQLite and LiteDB v3
+A simple actions to compare SQLite and LiteDB v3
 
-First results:
+Results:
 
 | Action        | LiteDB #1  | LiteDB #2 | LiteDB #3 | SQLite #1  | SQLite #2 | SQLite #3 |
 |---------------|------------|-----------|-----------|------------|-----------|-----------|
@@ -23,6 +23,9 @@ LiteDB
 SQLite
 - #1 Default
 - #2 Encrypted
+- #3 No journal
+
+Tested on MacBook Pro 2012 i5, Win10, 8Gb RAM, SSD
 
 ```
 
